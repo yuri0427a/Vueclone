@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/vue@2.5.17"></script>
+    <script src="https://unpkg.com/vue-router@3.0.1"></script>
+    <title>Vue.js入門4-2-2</title>
+</head>
+
+<body>
+    <div id="app">
+        <nav>
+            <router-link to="/top">トップページ</router-link>
+            <router-link to="/users">ユーザー一覧ページ</router-link>
+        </nav>
+        <router-view></router-view>
+    </div>
+    <script type="text/x-template" id="user-list">
+        <div>
+            <div class="loading" v-if="loading">読み込み中...</div>
+      
+            <div v-if="error" class="error">
+                {{ error }}
+            </div>
+            <div v-for="user in users" :key="user.id">
+                <h2>{{ user.name }}</h2>
+            </div>
+        </div>
+    </script>
+
+    <script>
+        var UserList = {
+            template: '#user-list',
+        }
+
+        var router = new VueRouter ({
+            routes:[
+                {
+                  path: '/top',
+                  component: {
+                    template: '<div>トップページ</div>'
+                  }
+                },
+                {
+                  path: '/users',
+                  component:  UserList
+                }
+            ]
+        })
+
+        // API
+        var getUsers = function(callback){
+            setTimeout(function(){
+                callback(null,[
+                    {
+                        id: 1,
+                        name: 'aaa'
+                    },
+                    {
+                        id: 2,
+                        name: 'bbb'
+                    }
+                ])
+            }, 1000)
+        }
+
+        // User List改修
+        var UserList = {
+            template: '#user-list',
+            data: function(){
+                return{
+                    loading: false,
+                    users: function(){ return [] },
+                    error: null
+                }
+            },
+
+            created: function(){
+                this.fetchData()
+            },
+
+            watch:{
+                '$route': 'fetchData'
+            },
+
+            methods:{
+                fetchData: function(){
+                    this.loading = true
+                    getUsers((function(err, users){  
+                        this.loading = false                      
+                        if (err){
+                            this.error = err.toStiring()
+                        } else{
+                            this.users = users
+                        }
+                    }).bind(this))
+                }
+            }
+        }
+
+        var app = new Vue({
+            router: router,
+        }).$mount('#app')
+
+    </script>
+</body>
+</html>
